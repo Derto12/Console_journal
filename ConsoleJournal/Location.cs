@@ -1,9 +1,14 @@
 ﻿namespace ConsoleJournal 
 {
-    public struct Location {
-        public int left;
-        public int top;
+    public class Location {
 
-        public override string ToString() => $"({left};{top})";
+        public int Left { get; set; }
+        public int Top { get; set; }
+
+        public Location() { }
+
+        public Location(int left, int top) => (Left, Top) = (left, top);
+
+        public override string ToString() => $"({Left};{Top})";
     }
 }

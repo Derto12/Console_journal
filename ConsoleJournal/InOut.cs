@@ -16,12 +16,12 @@ namespace ConsoleJournal
         }
 
         public static void Write(string msg, Location loc) {
-            Console.SetCursorPosition(loc.left, loc.top);
+            Console.SetCursorPosition(loc.Left, loc.Top);
             Console.Write(msg);
         }
 
         public static void Write(string msg, Location loc, ConsoleColor foreColor, ConsoleColor backColor = ConsoleColor.Black) {
-            Console.SetCursorPosition(loc.left, loc.top);
+            Console.SetCursorPosition(loc.Left, loc.Top);
             Write(msg, foreColor, backColor);
         }
 
