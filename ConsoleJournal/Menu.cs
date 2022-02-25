@@ -21,17 +21,21 @@ namespace ConsoleJournal
             else if (index >= n) index = 0;
 
             Console.CursorVisible = false;
-            for (int i = 0; i < n; i++) {
-                if (i == index) InOut.Write($"{ListSymbol} {options.ElementAt(i)}\n", ConsoleColor.Black, HighlightColor);
-                else InOut.Write($"{ListSymbol} {options.ElementAt(i)}\n",ForegroundColor);
+            int origLeft = Console.CursorLeft;
+
+            for (int i = 0; i < n; i++) 
+            {
+                if (i == index) InOut.Write($"{ListSymbol} {options.ElementAt(i)}\n", new Location(origLeft, Console.CursorTop), ConsoleColor.Black, HighlightColor);
+                else InOut.Write($"{ListSymbol} {options.ElementAt(i)}\n", new Location(origLeft, Console.CursorTop), ForegroundColor);
             }
 
             ConsoleKey key = Console.ReadKey(true).Key;
 
-            Console.SetCursorPosition(0, Console.CursorTop - n);
+            Console.SetCursorPosition(origLeft, Console.CursorTop - n);
             Console.CursorVisible = true;
 
-            switch (key) {
+            switch (key) 
+            {
                 case ConsoleKey.UpArrow:
                     return SelectIndex(options, --index);
                 case ConsoleKey.DownArrow:
@@ -44,7 +48,5 @@ namespace ConsoleJournal
         }
 
         public static T SelectItem<T>(IEnumerable<T> options) => options.ElementAt(SelectIndex(options));
-
-
     }
 }
