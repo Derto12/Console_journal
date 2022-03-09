@@ -1,87 +1,111 @@
 ﻿using Figgle;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Text;
-using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace ConsoleJournal
 {
     class Program
     {
+        static Settings settings = new Settings();
+        static UI menu = new UI();
+        static Random random = new Random();
         static Screen currentScreen = Screen.Main;
 
-        static void MainMenu()
+        static string Greeting()
         {
-            Console.Clear();
+            string greeting = "";
 
-            var banner = $"{FiggleFonts.Standard.Render("Journal")}{FiggleFonts.Standard.Render("is Life!")}";
-            InOut.PrintLinesAt(banner, new Location(0, 5), InOut.TextAlign.Center);
+            DateTime dateTime = DateTime.Now;
+            if (dateTime.Hour >= 5 && dateTime.Hour <= 12) greeting = "Good morning";
+            else if (dateTime.Hour > 12 && dateTime.Hour < 18) greeting = "Good afternoon";
+            else greeting = "Good evening";
 
-            Console.SetCursorPosition(3, 21);
-
-            string choice = Menu.SelectItem(new string[] { "New journal", "View documents", "Settings", "Exit" });
-            switch(choice) 
+            if(Settings.TodaysQuestion == "" || (dateTime - Settings.LastRefresh).TotalDays >= 1)
             {
-                case "New journal":
-                    //currentScreen = Screen.New;
-                    break;
-                case "View documents":
-                    //currentScreen = Screen.Docs;
-                    break;
-                case "Settings":
-                    //currentScreen = Screen.Settings;
-                    break;
-                case "Exit":
-                    currentScreen = Screen.None;
-                    break;
+                Settings.TodaysQuestion = Question();
+                Settings.LastRefresh = dateTime;
+                SaveConfig();
             }
+
+            greeting += string.Format(", {0}!\n{1}", Settings.Username != "" ?
+                Settings.Username : "diarist", Settings.TodaysQuestion);
+
+            return greeting;
         }
 
-        static void NewMenu()
+        static string Question()
         {
+            var questions = File.ReadAllLines("./System/Data/questions.txt");
 
-        }
-
-        static void DocsMenu()
-        {
-
-        }
-
-        static void SettingsMenu()
-        {
-
+            return questions[random.Next(0, questions.Length)];
         }
 
         static void Initialize()
         {
-            
+            if (File.Exists("./System/Config/config.ini")) LoadConfig();
         }
 
+        static void LoadConfig()
+        {
+            XmlDocument xdoc = new XmlDocument();
+            xdoc.Load("./System/Config/config.xml");
+            var nodes = xdoc.SelectSingleNode("Settings").ChildNodes;
+
+            foreach (XmlNode node in nodes)
+            {
+                settings = (Settings)AddParsedProp(settings, node.Name, node.InnerText);
+            }
+        }
+
+        static void SaveConfig()
+        {
+            XDocument doc = new XDocument();
+            doc.Declaration = new XDeclaration("1.0", Encoding.UTF8.HeaderName, String.Empty);
+
+            var elements = new List<XElement>();
+            var props = typeof(Settings).GetProperties();
+
+            foreach (var prop in props) elements.Add(new XElement(prop.Name, prop.GetValue(settings)));
+
+            doc.Add(new XElement("Settings", elements));
+            doc.Save("./System/Config/config.xml");
+        }
+
+        static object AddParsedProp(object obj, string propname, string value)
+        {
+            var prop = obj.GetType().GetProperty(propname);
+            object newvalue = ConvertType(value, prop.PropertyType);
+            prop.SetValue(obj, newvalue);
+
+            return obj;
+        }
+
+        public static object ConvertType(string value, Type type)
+        {
+            if (type.IsEnum) return Enum.Parse(type, value);
+            else return Convert.ChangeType(value, type);
+        }
 
         static void Main(string[] args)
         {
+            Initialize();
+
             bool exit = false;
             while (!exit)
             {
-                switch (currentScreen)
+                currentScreen = currentScreen switch
                 {
-                    case Screen.Main:
-                        MainMenu();
-                        break;
-                    case Screen.New:
-                        NewMenu();
-                        break;
-                    case Screen.Docs:
-                        DocsMenu();
-                        break;
-                    case Screen.Settings:
-                        SettingsMenu();
-                        break;
-                    case Screen.None:
-                        exit = true;
-                        break;
-                }
+                    Screen.Main => UI.MainMenu(Greeting()),
+                    Screen.New => UI.NewMenu(),
+                    Screen.Docs => UI.DocsMenu(),
+                    Screen.Settings => UI.SettingsMenu(),
+                    _ => Screen.None
+                };
+                exit = currentScreen == Screen.None;
             }
         }
     }

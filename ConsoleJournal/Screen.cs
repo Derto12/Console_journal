@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ConsoleJournal 
 {
-    enum Screen 
+    public enum Screen 
     {
         Main,
         New,
