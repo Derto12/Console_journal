@@ -7,7 +7,10 @@ namespace ConsoleJournal
 {
     public class UI
     {
-        public static string ListSymbol { get; set; } = ">";
+        static public string ListSymbol { get; set; } = ">";
+        static public ConsoleColor DocumentForeground { get; set; } = ConsoleColor.White;
+
+        static void SetCursor(int left, int top) => Console.SetCursorPosition(left, top);
         private static int SelectIndex<T>(IEnumerable<T> options, int index = 0)
         {
             int n = options.Count();
@@ -39,8 +42,6 @@ namespace ConsoleJournal
         }
         private static T SelectItem<T>(IEnumerable<T> options) => options.ElementAt(SelectIndex(options));
 
-
-        static void SetCursor(int left, int top) => Console.SetCursorPosition(left, top);
         public static Screen MainMenu(string greeting)
         {
             Console.Clear();

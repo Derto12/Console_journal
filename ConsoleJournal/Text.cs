@@ -12,7 +12,6 @@ namespace ConsoleJournal
         }
 
         static public ConsoleColor HighlightColor { get; set; } = ConsoleColor.White;
-
         public string Content {
             get { return _content; }
             set 
